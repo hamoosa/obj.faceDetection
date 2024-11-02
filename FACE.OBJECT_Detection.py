@@ -34,6 +34,10 @@ while True:
     # Forward pass to get output
     outputs = net.forward(output_layers)
 
+    boxes = []
+    confidences = []
+    class_ids = []
+
     # Process the detections
     for output in outputs:
         for detection in output:
@@ -54,10 +58,21 @@ while True:
                     x = int(center_x - w / 2)
                     y = int(center_y - h / 2)
 
-                    # Draw bounding box around detected object
-                    label = f"{classes[class_id]}: {confidence:.2f}"
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                    cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                    # Store box coordinates and confidences for NMS
+                    boxes.append([x, y, w, h])
+                    confidences.append(float(confidence))
+                    class_ids.append(class_id)
+
+    # Apply Non-Maximum Suppression
+    indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+
+    # Draw the remaining boxes after NMS
+    for i in range(len(boxes)):
+        if i in indexes:
+            x, y, w, h = boxes[i]
+            label = f"{classes[class_ids[i]]}: {confidences[i]:.2f}"
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
     # Display the resulting frame with rectangles
     cv2.imshow('Face and Object Detection with YOLO', frame)
@@ -69,5 +84,3 @@ while True:
 # Release the webcam and close all OpenCV windows
 cap.release()
 cv2.destroyAllWindows()
-
-#4:15 11/2
