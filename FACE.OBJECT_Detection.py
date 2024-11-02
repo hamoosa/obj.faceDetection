@@ -45,10 +45,10 @@ while True:
             class_id = np.argmax(scores)  # Get the index of the highest score
             confidence = scores[class_id]  # Get the confidence of that class
 
-            # Filter out weak predictions; check for person (class_id 0) and telephone (adjust class_id accordingly)
+            # Filter out weak predictions; check for person, telephone, and handbag
             if confidence > 0.5:
-                # Assuming class_id for telephone is 67 (check coco.names)
-                if class_id == 0 or class_id == 67:  # Class ID for 'person' and 'cell phone'
+                # Store the box coordinates for NMS
+                if class_id in [0, 26, 67]:  # 0: Person, 26: Handbag, 67: Cell phone
                     center_x = int(detection[0] * frame.shape[1])
                     center_y = int(detection[1] * frame.shape[0])
                     w = int(detection[2] * frame.shape[1])
@@ -58,7 +58,6 @@ while True:
                     x = int(center_x - w / 2)
                     y = int(center_y - h / 2)
 
-                    # Store box coordinates and confidences for NMS
                     boxes.append([x, y, w, h])
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
